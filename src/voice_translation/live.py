@@ -38,6 +38,16 @@ def allow_empty_microphone(component):
     return component
 
 
+async def reset_microphone_connections(component):
+    """Release local microphone sessions so a stopped call can reconnect."""
+    for session_id, peer in list(component.pcs.items()):
+        await peer.close()
+        connections = component.clean_up(session_id)
+        for connection in connections:
+            connection.stop()
+    return "Microphone connections cleared. Click Record to start again."
+
+
 def normalize_microphone_audio(audio: tuple[int, np.ndarray]) -> tuple[int, np.ndarray]:
     """Convert channel-first/channel-last PCM to finite mono float32 audio.
 

@@ -235,6 +235,13 @@ with gr.Blocks(title="Real-Time Voice Translation", delete_cache=(3600, 3600)) a
             label="Live microphone", mode="send-receive", modality="audio",
             full_screen=False, height=240,
         ))
+        async def reset_live_microphone():
+            from voice_translation.live import reset_microphone_connections
+            return await reset_microphone_connections(live_audio)
+
+        reset_button = gr.Button("Reset microphone connection")
+        live_status = gr.Markdown()
+        reset_button.click(reset_live_microphone, inputs=[], outputs=live_status, queue=False)
         live_audio.stream(
             fn=ReplyOnPause(live_translate_speak, can_interrupt=True),
             inputs=[live_audio, reference, extra_reference, consent, model_license, temperature],
