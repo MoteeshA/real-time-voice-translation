@@ -257,4 +257,5 @@ with gr.Blocks(title="Real-Time Voice Translation", delete_cache=(3600, 3600)) a
 
 if __name__ == "__main__":
     demo.queue().launch(server_name="127.0.0.1", server_port=7860,
+                        share=os.getenv("VOICE_SHARE") == "1",
                         inbrowser=os.getenv("VOICE_OPEN_BROWSER") == "1")
