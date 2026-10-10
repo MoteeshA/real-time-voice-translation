@@ -20,9 +20,22 @@ class MicrophoneTests(unittest.TestCase):
         from fastrtc.utils import WebRTCModel
         component = live.allow_empty_microphone(WebRTC(render=False))
         self.assertIsNone(component.preprocess(None))
-        self.assertEqual(component.preprocess(WebRTCModel(root='test-session')), 'test-session')
+        self.assertEqual(component.preprocess(WebRTCModel(root='test-session')).webrtc_id, 'test-session')
         # Updating extra inputs before an offer is expected to do nothing.
         component.set_input_gradio(None, 'reference', True)
+
+    def test_session_id_does_not_become_an_extra_callback_argument(self):
+        from fastrtc import WebRTC, ReplyOnPause
+        from fastrtc.utils import WebRTCModel
+        component = live.allow_empty_microphone(WebRTC(render=False))
+        handler = ReplyOnPause(live.live_translate_speak)
+        session = component.preprocess(WebRTCModel(root="test-session"))
+        handler.set_args([session, "reference.wav", None, True, True, 0.75])
+        self.assertEqual(len(handler.latest_args), 6)
+        handler.latest_args[0].audio = (16000, np.zeros((1, 16000)))
+        import inspect
+        inspect.signature(live.live_translate_speak).bind(*handler.latest_args)
+        self.assertEqual(list(live.live_translate_speak(*handler.latest_args)), [])
 
     def test_stereo_integer_pcm_is_scaled_before_downmix(self):
         channel = np.array([0, 16384, -32768, 32767], dtype=np.int16)

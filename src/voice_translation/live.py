@@ -21,10 +21,17 @@ OUTPUT_CHUNK_SAMPLES = OUTPUT_SAMPLE_RATE // 5
 
 def allow_empty_microphone(component):
     """Allow settings changes before FastRTC has a microphone session ID."""
+    from fastrtc.utils import WebRTCData
+
     original = component.preprocess
 
     def preprocess(payload):
-        return None if payload is None else original(payload)
+        if payload is None:
+            return None
+        value = original(payload)
+        # FastRTC duplicates legacy string session IDs when setting audio args.
+        # Its structured session type is replaced by the captured audio instead.
+        return WebRTCData(webrtc_id=value) if isinstance(value, str) else value
 
     # Retain the original component class and its frontend assets.
     component.preprocess = preprocess
@@ -91,6 +98,9 @@ def live_translate_speak(
 
     if not np.isfinite(temperature) or temperature <= 0:
         raise ValueError("Sampling temperature must be a positive number.")
+    # Structured FastRTC sessions carry the VAD-delimited audio payload.
+    if hasattr(audio, "webrtc_id"):
+        audio = audio.audio
     sample_rate, samples = normalize_microphone_audio(audio)
     if samples.size < sample_rate // 2 or np.max(np.abs(samples), initial=0) < 1e-4:
         return
