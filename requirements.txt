@@ -1,0 +1,9 @@
+# Use Python 3.10–3.13. The voice models need several GB of disk and memory.
+gradio==5.50.0
+coqui-tts[codec]==0.27.5
+faster-whisper==1.2.1
+torch>=2.6,<2.12
+torchaudio>=2.6,<2.12
+transformers==4.57.6
+fastrtc[vad]==0.0.34
+spacy>=3.8,<3.9
